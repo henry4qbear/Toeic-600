@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多益600分 單字特訓</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --btn-bg: #2d2d2d;
+            --text-main: #ffffff;
+            --text-sub: #b0b0b0;
+            --primary-blue: #3b82f6;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* 頂部進度條 */
+        .header-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 4px;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .score-text {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-sub);
+        }
+
+        /* 題目卡片主體 */
+        .quiz-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .chinese-sentence {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .hint-text {
+            font-size: 13px;
+            color: #888888;
+            margin-bottom: 24px;
+        }
+
+        .english-sentence {
+            font-size: 20px;
+            line-height: 1.5;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .blank-space {
+            color: var(--primary-blue);
+            font-weight: bold;
+            border-bottom: 2px dashed var(--primary-blue);
+            padding: 0 8px;
+        }
+
+        /* 四選一按鈕區 */
+        .options-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background-color: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid #3d3d3d;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media(hover: hover) {
+            .option-btn:hover {
+                background-color: #383838;
+                border-color: #555edc;
+            }
+        }
+
+        /* 答案狀態樣式 */
+        .option-btn.correct {
+            background-color: rgba(16, 185, 129, 0.2) !important;
+            border-color: var(--success-green) !important;
+            color: #5cf5b7;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: var(--error-red) !important;
+            color: #ff7878;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .option-btn.correct.disabled, .option-btn.wrong.disabled {
+            opacity: 1;
+        }
+
+        /* 回饋解析區 */
+        .feedback-area {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 14px;
+            padding: 16px;
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .feedback-success {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: #a7f3d0;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .feedback-error {
+            background-color: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* 下一題按鈕 */
+        .btn-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: auto;
+            padding-bottom: 12px;
+        }
+
+        .next-btn {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1d4ed8;
+            transition: all 0.1s;
+            display: none;
+        }
+
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 進度條 -->
+    <div class="header-container">
+        <span class="score-text" id="quiz-index">1/10</span>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <span class="score-text">多益特訓</span>
+    </div>
+
+    <!-- 題目 -->
+    <div class="quiz-card" id="main-card">
+        <div class="chinese-sentence" id="cn-text">讀取中...</div>
+        <div class="hint-text" id="hint-text"></div>
+        <div class="english-sentence" id="en-text"></div>
+    </div>
+
+    <!-- 選項 -->
+    <div class="options-container" id="options-box"></div>
+
+    <!-- 解析 -->
+    <div class="feedback-area" id="feedback-box"></div>
+
+    <!-- 下一題按鈕 -->
+    <div class="btn-container">
+        <button class="next-btn" id="next-action">下一題 ➔</button>
+    </div>
+
+    <script>
+        // 匯入包含截圖中所有全新字彙的完整題庫
+        const db = [
+            {
+                cn: "合約中明確規定的條款讓雙方沒有爭議空間。",
+                hint: "※ 截圖單字：explicit (明確的/直率的)",
+                enBefore: "The contract contains ",
+                enAfter: " terms that leave no room for disagreement.",
+                answer: "explicit",
+                wrongOptions: ["subjective", "withhold", "dampen"],
+                explain: "💡 補全：explicit terms (明確的條款)。在多益商務合約中極常見，反義詞為 implicit (暗示的/含蓄的)。"
+            },
+            {
+                cn: "經過多年的研發，這個專案終於迎來了成功的成果。",
+                hint: "※ 截圖單字：fruition (成果/實現)",
+                enBefore: "After years of R&D, the project finally came to full ",
+                enAfter: ".",
+                answer: "fruition",
+                wrongOptions: ["persistence", "entrance", "delight"],
+                explain: "💡 補全：come to fruition (開花結果/實現)。商務上用來形容計畫、專案取得實質成果。"
+            },
+            {
+                cn: "他的堅持不懈最終讓他成功通過了高級認證考試。",
+                hint: "※ 截圖單字：persistence (堅持不懈/持續)",
+                enBefore: "His ",
+                enAfter: " finally paid off when he passed the advanced certification.",
+                answer: "persistence",
+                wrongOptions: ["fruition", "marathon", "treasure"],
+                explain: "💡 補全：His persistence paid off (他的堅持得到了回報)。名詞形態，動詞為 persist。"
+            },
+            {
+                cn: "這家新創公司提交了最具競爭力的投標書來爭取政府專案。",
+                hint: "※ 截圖單字：bid (投標/出價)",
+                enBefore: "The startup submitted a competitive ",
+                enAfter: " for the government project.",
+                answer: "bid",
+                wrongOptions: ["propel", "surmount", "withhold"],
+                explain: "💡 補全：submit a bid (遞交投標書)。在多益招標、採購與商務談判單元是高頻必考核心詞。"
+            },
+            {
+                cn: "經理決定先扣留這筆款項，直到供應商修正所有缺失。",
+                hint: "※ 截圖單字：withhold (扣留/隱瞞)",
+                enBefore: "The manager decided to ",
+                enAfter: " the payment until the supplier fixed all issues.",
+                answer: "withhold",
+                wrongOptions: ["propel", "dampen", "satisfy"],
+                explain: "💡 補全：withhold the payment (扣留款項)。常用於商務糾紛或合約款項留置的場景。"
+            },
+            {
+                cn: "高昂的維護成本挫傷了團隊購買該自動化設備的熱情。",
+                hint: "※ 截圖單字：dampen (挫傷/使潮濕/減弱)",
+                enBefore: "The high maintenance costs ",
+                enAfter: "ed the team's enthusiasm for the automated equipment.",
+                answer: "dampen",
+                wrongOptions: ["propel", "surmount", "forgive"],
+                explain: "💡 補全：dampen one's enthusiasm (澆冷水/挫傷熱情)。商務評估決策時常用的生動表達。"
+            },
+            {
+                cn: "新的行銷策略預期將推動我們在第二季度的產品銷量。",
+                hint: "※ 截圖單字：propel (推進/驅使)",
+                enBefore: "The new marketing strategy is expected to ",
+                enAfter: " our sales in Q2.",
+                answer: "propel",
+                wrongOptions: ["withhold", "dampen", "freeze"],
+                explain: "💡 補全：propel sales (推動銷量)。指像推進器一樣促使某事物快速向前發展。"
+            },
+            {
+                cn: "我們必須克服這項技術瓶頸，才能準時量產。",
+                hint: "※ 截圖單字：surmount (克服/越過)",
+                enBefore: "We must ",
+                enAfter: " this technical bottleneck to meet the mass production deadline.",
+                answer: "surmount",
+                wrongOptions: ["withhold", "propel", "dampen"],
+                explain: "💡 補全：surmount a bottleneck/difficulty (克服瓶頸/困難)。比普通的 overcome 更具正式商務感。"
+            },
+            {
+                cn: "主觀的判斷可能會導致生產管理上的數據產生偏差。",
+                hint: "※ 截圖單字：subjective (主觀的)",
+                enBefore: "A ",
+                enAfter: " judgment might cause deviations in production management data.",
+                answer: "subjective",
+                wrongOptions: ["objective", "explicit", "outstanding"],
+                explain: "💡 補全：subjective judgment (主觀判斷)。與客觀的 objective 互為一組反義詞。"
+            },
+            {
+                cn: "大會邀請了一位傑出的音樂家在晚宴上進行開場演奏。",
+                hint: "※ 截圖單字：outstanding (傑出的/未付清的) & musician (音樂家)",
+                enBefore: "The conference invited an ",
+                enAfter: " musician to perform at the gala dinner.",
+                answer: "outstanding",
+                wrongOptions: ["delightful", "surprising", "explicit"],
+                explain: "💡 補全：outstanding musician (傑出的音樂家)。注意 outstanding 在多益還常考「未付清的 (outstanding balance)」的意思！"
+            }
+        ];
+
+        let currentIndex = 0;
+
+        const cnText = document.getElementById('cn-text');
+        const hintText = document.getElementById('hint-text');
+        const enText = document.getElementById('en-text');
+        const optionsBox = document.getElementById('options-box');
+        const feedbackBox = document.getElementById('feedback-box');
+        const nextActionBtn = document.getElementById('next-action');
+        const quizIndexDisplay = document.getElementById('quiz-index');
+        const progressFill = document.getElementById('progress-fill');
+
+        function loadQuestion() {
+            const q = db[currentIndex];
+            cnText.innerText = q.cn;
+            hintText.innerText = q.hint;
+            enText.innerHTML = `${q.enBefore}<span class="blank-space">______</span>${q.enAfter}`;
+
+            feedbackBox.style.display = 'none';
+            nextActionBtn.style.display = 'none';
+            optionsBox.innerHTML = '';
+
+            // 混合正確答案與錯誤答案，並隨機打亂
+            const allOptions = [q.answer, ...q.wrongOptions].sort(() => Math.random() - 0.5);
+
+            // 生成選項按鈕
+            allOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.addEventListener('click', () => checkAnswer(btn, opt));
+                optionsBox.appendChild(btn);
+            });
+
+            // 更新進度條
+            quizIndexDisplay.innerText = `${currentIndex + 1}/${db.length}`;
+            progressFill.style.width = `${((currentIndex + 1) / db.length) * 100}%`;
+        }
+
+        function checkAnswer(selectedBtn, selectedOption) {
+            const q = db[currentIndex];
+            const allButtons = document.querySelectorAll('.option-btn');
+
+            // 停用所有按鈕，防止重複點擊
+            allButtons.forEach(btn => btn.classList.add('disabled'));
+
+            feedbackBox.style.display = 'block';
+
+            if (selectedOption === q.answer) {
+                selectedBtn.classList.add('correct');
+                feedbackBox.className = 'feedback-area feedback-success';
+                feedbackBox.innerHTML = `🎉 答對了！<br>${q.explain}`;
+            } else {
+                selectedBtn.classList.add('wrong');
+                feedbackBox.className = 'feedback-area feedback-error';
+                feedbackBox.innerHTML = `❌ 答錯囉！正確答案是：<strong>${q.answer}</strong><br>${q.explain}`;
+                
+                // 把正確的按鈕也亮綠燈提示
+                allButtons.forEach(btn => {
+                    if (btn.innerText === q.answer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // 將題目中的底線換成真實單字
+            enText.innerHTML = `${q.enBefore}<span class="blank-space" style="color:var(--success-green); border-bottom-color:var(--success-green);">${q.answer}</span>${q.enAfter}`;
+
+            nextActionBtn.style.display = 'block';
+        }
+
+        nextActionBtn.addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex < db.length) {
+                loadQuestion();
+            } else {
+                // 結束畫面
+                document.getElementById('main-card').innerHTML = `
+                    <div class="chinese-sentence" style="text-align:center; margin-bottom:12px; font-size:22px;">🎉 特訓圓滿完成！</div>
+                    <div style="text-align:center; color:var(--success-green); font-size:16px; line-height:1.6;">
+                        截圖中的精選核心多益單字已經全部複習完畢！系統建構大成功！
+                    </div>
+                `;
+                optionsBox.innerHTML = '';
+                feedbackBox.style.display = 'none';
+                nextActionBtn.innerText = '重頭挑戰 ↺';
+                nextActionBtn.addEventListener('click', () => window.location.reload());
+            }
+        });
+
+        // 初始載入
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
