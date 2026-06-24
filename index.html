@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多益600分 填空挑戰</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --text-main: #ffffff;
+            --text-sub: #b0b0b0;
+            --primary-blue: #3b82f6;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* 上方進度條 */
+        .header-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 8px;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 12px;
+            background-color: #2d2d2d;
+            border-radius: 6px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 10%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .score-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-sub);
+        }
+
+        /* 題目卡片主體 */
+        .quiz-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .chinese-sentence {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .hint-text {
+            font-size: 13px;
+            color: #888888;
+            margin-bottom: 40px;
+        }
+
+        .english-sentence {
+            font-size: 22px;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+            word-spacing: 2px;
+        }
+
+        /* 填空輸入框 */
+        .blank-input {
+            border: none;
+            border-bottom: 3px solid var(--primary-blue);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            font-size: 22px;
+            font-family: inherit;
+            text-align: center;
+            width: 100px;
+            margin: 0 6px;
+            border-radius: 6px 6px 0 0;
+            outline: none;
+            padding: 2px 4px;
+            transition: all 0.2s;
+        }
+
+        .blank-input:focus {
+            background-color: #333333;
+            border-bottom-color: #60a5fa;
+        }
+
+        /* 回饋顯示區域 */
+        .feedback-area {
+            margin-top: 24px;
+            min-height: 48px;
+            font-size: 15px;
+            line-height: 1.5;
+            border-radius: 12px;
+            padding: 10px;
+            display: none;
+        }
+
+        .feedback-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success-green);
+        }
+
+        .feedback-error {
+            background-color: rgba(239, 68, 244, 0.15);
+            color: var(--error-red);
+        }
+
+        /* 底部確認按鈕 */
+        .btn-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: auto;
+            padding-bottom: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1d4ed8;
+            transition: all 0.1s;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1d4ed8;
+        }
+
+        .submit-btn.next-mode {
+            background-color: var(--success-green);
+            box-shadow: 0 4px 0 #047857;
+        }
+        .submit-btn.next-mode:active {
+            box-shadow: 0 0 0 #047857;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部進度條 -->
+    <div class="header-container">
+        <span class="score-text" id="quiz-index">1/5</span>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <span class="score-text">多益600</span>
+    </div>
+
+    <!-- 題目卡片 -->
+    <div class="quiz-card">
+        <div class="chinese-sentence" id="cn-text">在大雨中開車真的很危險。</div>
+        <div class="hint-text" id="hint-text">※ 提示：形容詞，指數量或程度嚴重</div>
+        
+        <div class="english-sentence" id="en-text">
+            Driving in <input type="text" class="blank-input" id="word-input" autocomplete="off" autofocus> rain is extremely dangerous.
+        </div>
+
+        <div class="feedback-area" id="feedback-box"></div>
+    </div>
+
+    <!-- 底部確認按鈕 -->
+    <div class="btn-container">
+        <button class="submit-btn" id="action-btn">✓ 確認</button>
+    </div>
+
+    <script>
+        // 多益精選 5 題題庫
+        const db = [
+            {
+                cn: "在大雨中開車真的很危險。",
+                hint: "※ 提示：形容詞，指數量或程度嚴重",
+                enBefore: "Driving in ",
+                enAfter: " rain is extremely dangerous.",
+                answer: "heavy",
+                explain: "💡 補全：heavy rain (大雨)。商務與日常中不說 big rain，固定搭配為 heavy rain。"
+            },
+            {
+                cn: "全體員工都必須準時出席會議。",
+                hint: "※ 提示：名詞，公司全體職員/人事部門",
+                enBefore: "All conference ",
+                enAfter: " must attend the meeting on time.",
+                answer: "personnel",
+                explain: "💡 補全：personnel (全體員工)。字尾為 -nel，注意與個人 personal 做區隔。"
+            },
+            {
+                cn: "本季的房貸利率大幅調升了。",
+                hint: "※ 提示：名詞，房屋貸款",
+                enBefore: "The ",
+                enAfter: " rates have increased significantly this quarter.",
+                answer: "mortgage",
+                explain: "💡 補全：mortgage (房貸)。字中的 't' 不發音，是多益極常出現的金融基礎單字。"
+            },
+            {
+                cn: "這是一份關於維修工程的初步估價單。",
+                hint: "※ 提示：名詞，估價/預估值",
+                enBefore: "This is a rough ",
+                enAfter: " for the repair work.",
+                answer: "estimate",
+                explain: "💡 補全：estimate (估價單/估計)。商務書信中常見的 request an estimate 即為索取估價單。"
+            },
+            {
+                cn: "請將您的收據釘在報銷表格上。",
+                hint: "※ 提示：動詞，連結/附加/釘上",
+                enBefore: "Please ",
+                enAfter: " your receipt to the expense form.",
+                answer: "attach",
+                explain: "💡 補全：attach (附加/夾帶)。商務電子郵件中常用 attach a file 來表示隨信附上檔案。"
+            }
+        ];
+
+        let currentIndex = 0;
+        let isAnswered = false;
+
+        const cnText = document.getElementById('cn-text');
+        const hintText = document.getElementById('hint-text');
+        const enText = document.getElementById('en-text');
+        const wordInput = document.getElementById('word-input');
+        const feedbackBox = document.getElementById('feedback-box');
+        const actionBtn = document.getElementById('action-btn');
+        const quizIndexDisplay = document.getElementById('quiz-index');
+        const progressFill = document.getElementById('progress-fill');
+
+        function loadQuestion() {
+            const q = db[currentIndex];
+            cnText.innerText = q.cn;
+            hintText.innerText = q.hint;
+            
+            // 動態組裝輸入框
+            enText.innerHTML = `${q.enBefore}<input type="text" class="blank-input" id="word-input" autocomplete="off" autofocus>${q.enAfter}`;
+            
+            // 重新綁定新產生的 input 元素
+            const newInput = document.getElementById('word-input');
+            
+            // 自動計算輸入框寬度（依提示字長度微調）
+            newInput.style.width = `${Math.max(q.answer.length * 14, 80)}px`;
+
+            feedbackBox.style.display = 'none';
+            feedbackBox.className = 'feedback-area';
+            
+            actionBtn.innerText = '✓ 確認';
+            actionBtn.className = 'submit-btn';
+            
+            // 更新進度條
+            quizIndexDisplay.innerText = `${currentIndex + 1}/${db.length}`;
+            progressFill.style.width = `${((currentIndex + 1) / db.length) * 100}%`;
+            
+            isAnswered = false;
+            newInput.focus();
+
+            // 支援手機鍵盤 Enter 直接送出
+            newInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleAction();
+                }
+            });
+        }
+
+        function handleAction() {
+            const currentInput = document.getElementById('word-input');
+            if (!isAnswered) {
+                // 檢查答案
+                const userAnswer = currentInput.value.trim().toLowerCase();
+                const correctAnswer = db[currentIndex].answer.toLowerCase();
+
+                feedbackBox.style.display = 'block';
+                if (userAnswer === correctAnswer) {
+                    feedbackBox.innerText = "🎉 太棒了！答對了！\n" + db[currentIndex].explain;
+                    feedbackBox.classList.add('feedback-success');
+                } else {
+                    feedbackBox.innerText = `❌ 差一點點！正確答案是：${correctAnswer}\n` + db[currentIndex].explain;
+                    feedbackBox.classList.add('feedback-error');
+                }
+
+                currentInput.disabled = true;
+                actionBtn.innerText = '下一題 ➔';
+                actionBtn.classList.add('next-mode');
+                isAnswered = true;
+            } else {
+                // 前往下一題
+                currentIndex++;
+                if (currentIndex < db.length) {
+                    loadQuestion();
+                } else {
+                    // 測驗結束
+                    document.querySelector('.quiz-card').innerHTML = `
+                        <div class="chinese-sentence" style="text-align:center; margin-bottom:20px;">🎉 恭喜完成本次多益填空挑戰！</div>
+                        <div class="hint-text" style="text-align:center; font-size:16px; color:#10b981;">這 5 個核心單字你已經掌握囉！持續保持這個節奏！</div>
+                    `;
+                    actionBtn.innerText = '重新挑戰 ↺';
+                    actionBtn.className = 'submit-btn';
+                    currentIndex = -1; // 標記結束狀態
+                }
+            }
+        }
+
+        actionBtn.addEventListener('click', () => {
+            if (currentIndex === -1) {
+                currentIndex = 0;
+                // 完全重整網頁重新開始
+                window.location.reload();
+            } else {
+                handleAction();
+            }
+        });
+
+        // 初始載入第一題
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
