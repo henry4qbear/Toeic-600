@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEIC 600 - Immersive特訓</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --btn-bg: #2d2d2d;
+            --text-main: #ffffff;
+            --text-sub: #b0b0b0;
+            --primary-blue: #3b82f6;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* 頂部進度條 */
+        .header-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            margin: 0 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .score-text {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-sub);
+        }
+
+        /* 題目卡片主體 */
+        .quiz-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 32px 24px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .english-sentence {
+            font-size: 20px;
+            line-height: 1.6;
+            letter-spacing: 0.4px;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .blank-space {
+            color: var(--primary-blue);
+            font-weight: bold;
+            border-bottom: 2px dashed var(--primary-blue);
+            padding: 0 8px;
+        }
+
+        /* 四選一按鈕區 */
+        .options-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background-color: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid #3d3d3d;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 答案狀態樣式 */
+        .option-btn.correct {
+            background-color: rgba(16, 185, 129, 0.2) !important;
+            border-color: var(--success-green) !important;
+            color: #5cf5b7;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: var(--error-red) !important;
+            color: #ff7878;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .option-btn.correct.disabled, .option-btn.wrong.disabled {
+            opacity: 1;
+        }
+
+        /* 解析區 */
+        .feedback-area {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 14px;
+            padding: 16px;
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .feedback-success {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: #a7f3d0;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .feedback-error {
+            background-color: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* 下一題按鈕 */
+        .btn-container {
+            width: 100%;
+            max-width: 400px;
+            margin-top: auto;
+            padding-bottom: 12px;
+        }
+
+        .next-btn {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1d4ed8;
+            transition: all 0.1s;
+            display: none;
+        }
+
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1d4ed8;
+        }
+
+        /* === 錯題複習字卡專用樣式 === */
+        .flashcard {
+            width: 100%;
+            max-width: 400px;
+            height: 240px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .card-front {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .card-back {
+            background-color: #1e293b;
+            color: white;
+            transform: rotateY(180deg);
+            border: 2px solid #3b82f6;
+        }
+
+        .card-word {
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container" id="top-bar">
+        <span class="score-text" id="quiz-index">1/10</span>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <span class="score-text" id="mode-title">TOEIC Test</span>
+    </div>
+
+    <div id="quiz-zone" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div class="quiz-card" id="main-card">
+            <div class="english-sentence" id="en-text">Loading...</div>
+        </div>
+        <div class="options-container" id="options-box"></div>
+        <div class="feedback-area" id="feedback-box"></div>
+    </div>
+
+    <div id="review-zone" style="width: 100%; display: none; flex-direction: column; align-items: center;">
+        <div style="font-size: 15px; color: var(--text-sub); margin-bottom: 16px; text-align: center;" id="review-count"></div>
+        <div class="flashcard" id="card-toggle">
+            <div class="flashcard-inner">
+                <div class="card-front">
+                    <div class="card-word" id="card-eng">Word</div>
+                    <div style="font-size: 13px; color: #bfdbfe;">💡 點擊翻面看中文與解析</div>
+                </div>
+                <div class="card-back">
+                    <div style="font-size: 16px; color: #3b82f6; font-weight: bold; margin-bottom: 6px;" id="card-ch">中文意思</div>
+                    <div style="font-size: 13px; color: #e2e8f0; line-height: 1.5; text-align: left;" id="card-exp">詳細解析內容</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="next-btn" id="next-action">Next ➔</button>
+    </div>
+
+    <script>
+        // 核心題庫 (移除題目中的中文顯示，移至解析)
+        const db = [
+            {
+                enBefore: "The contract contains ",
+                enAfter: " terms that leave no room for disagreement.",
+                answer: "explicit",
+                wrongOptions: ["subjective", "withhold", "dampen"],
+                cnTrans: "合約中明確規定的條款讓雙方沒有爭議空間。",
+                explain: "explicit (明確的/直率的)。在多益商務合約中極常見，指規章、條款寫得毫無隱瞞、非常清晰。反義詞為 implicit (含蓄的)。"
+            },
+            {
+                enBefore: "After years of R&D, the project finally came to full ",
+                enAfter: ".",
+                answer: "fruition",
+                wrongOptions: ["persistence", "entrance", "delight"],
+                cnTrans: "經過多年的研發，這個專案終於迎來了成功的成果。",
+                explain: "fruition (成果/實現)。固定搭配為 come to fruition (開花結果/取得成果)。商務上用來形容計畫、研發取得實質回報。"
+            },
+            {
+                enBefore: "His ",
+                enAfter: " finally paid off when he passed the advanced certification.",
+                answer: "persistence",
+                wrongOptions: ["fruition", "marathon", "treasure"],
+                cnTrans: "他的堅持不懈最終讓他成功通過了高級認證考試。",
+                explain: "persistence (堅持不懈/持續)。名詞形態。常見片語如 His persistence paid off (他的堅持得到了回報)。"
+            },
+            {
+                enBefore: "The startup submitted a competitive ",
+                enAfter: " for the government project.",
+                answer: "bid",
+                wrongOptions: ["propel", "surmount", "withhold"],
+                cnTrans: "這家新創公司提交了最具競爭力的投標書來爭取政府專案。",
+                explain: "bid (投標/出價)。遞交投標書固定用 submit a bid。在採購、招標專案與商務談判單元是必考的核心字彙。"
+            },
+            {
+                enBefore: "The manager decided to ",
+                enAfter: " the payment until the supplier fixed all issues.",
+                answer: "withhold",
+                wrongOptions: ["propel", "dampen", "satisfy"],
+                cnTrans: "經理決定先扣留這筆款項，直到供應商修正所有缺失。",
+                explain: "withhold (扣留/隱瞞)。常用於 withholding tax (扣繳稅款) 或 withhold payment (扣留款項)，商務糾紛中常見。"
+            },
+            {
+                enBefore: "The high maintenance costs ",
+                enAfter: "ed the team's enthusiasm for the automated equipment.",
+                answer: "dampen",
+                wrongOptions: ["propel", "surmount", "forgive"],
+                cnTrans: "高昂的維護成本挫傷了團隊購買該自動化設備的熱情。",
+                explain: "dampen (挫傷/減弱)。常與 enthusiasm 搭配，dampen one's enthusiasm 意為挫傷某人的熱情、澆冷水。"
+            },
+            {
+                enBefore: "The new marketing strategy is expected to ",
+                enAfter: " our sales in Q2.",
+                answer: "propel",
+                wrongOptions: ["withhold", "dampen", "freeze"],
+                cnTrans: "新的行銷策略預期將推動我們在第二季度的產品銷量。",
+                explain: "propel (推進/驅使)。指像推進器一樣促使某事物快速向前發展。商務上常用於推動銷量、推動營收成長。"
+            },
+            {
+                enBefore: "We must ",
+                enAfter: " this technical bottleneck to meet the mass production deadline.",
+                answer: "surmount",
+                wrongOptions: ["withhold", "propel", "dampen"],
+                cnTrans: "我們必須克服這項技術瓶頸，才能準時量產。",
+                explain: "surmount (克服/越過)。克服瓶頸/困難的正式商務用法。通常搭配 surmount a bottleneck 或 surmount difficulties。"
+            },
+            {
+                enBefore: "A ",
+                enAfter: " judgment might cause deviations in production management data.",
+                answer: "subjective",
+                wrongOptions: ["objective", "explicit", "outstanding"],
+                cnTrans: "主觀的判斷可能會導致生產管理上的數據產生偏差。",
+                explain: "subjective (主觀的)。在工業工程與生管中，通常要避免 subjective 判斷，改用數據導向的 objective (客觀) 決策。"
+            },
+            {
+                enBefore: "The conference invited an ",
+                enAfter: " musician to perform at the gala dinner.",
+                answer: "outstanding",
+                wrongOptions: ["delightful", "surprising", "explicit"],
+                cnTrans: "大會邀請了一位傑出的音樂家在晚宴上進行開場演奏。",
+                explain: "outstanding (傑出的/未付清的)。除了形容人很傑出外，多益極常考「未付清的」意思，例如 outstanding balance (未付款餘額)。"
+            }
+        ];
+
+        let currentIndex = 0;
+        let wrongList = []; 
+        let reviewIndex = 0; 
+
+        const enText = document.getElementById('en-text');
+        const optionsBox = document.getElementById('options-box');
+        const feedbackBox = document.getElementById('feedback-box');
+        const nextActionBtn = document.getElementById('next-action');
+        const quizIndexDisplay = document.getElementById('quiz-index');
+        const progressFill = document.getElementById('progress-fill');
+        const modeTitle = document.getElementById('mode-title');
+
+        const quizZone = document.getElementById('quiz-zone');
+        const reviewZone = document.getElementById('review-zone');
+        const cardToggle = document.getElementById('card-toggle');
+        const cardEng = document.getElementById('card-eng');
+        const cardCh = document.getElementById('card-ch');
+        const cardExp = document.getElementById('card-exp');
+        const reviewCount = document.getElementById('review-count');
+
+        function loadQuestion() {
+            const q = db[currentIndex];
+            enText.innerHTML = `${q.enBefore}<span class="blank-space">______</span>${q.enAfter}`;
+
+            feedbackBox.style.display = 'none';
+            nextActionBtn.style.display = 'none';
+            optionsBox.innerHTML = '';
+
+            const allOptions = [q.answer, ...q.wrongOptions].sort(() => Math.random() - 0.5);
+
+            allOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.addEventListener('click', () => checkAnswer(btn, opt));
+                optionsBox.appendChild(btn);
+            });
+
+            quizIndexDisplay.innerText = `${currentIndex + 1}/${db.length}`;
+            progressFill.style.width = `${((currentIndex + 1) / db.length) * 100}%`;
+        }
+
+        function checkAnswer(selectedBtn, selectedOption) {
+            const q = db[currentIndex];
+            const allButtons = document.querySelectorAll('.option-btn');
+
+            allButtons.forEach(btn => btn.classList.add('disabled'));
+            feedbackBox.style.display = 'block';
+
+            if (selectedOption === q.answer) {
+                selectedBtn.classList.add('correct');
+                feedbackBox.className = 'feedback-area feedback-success';
+                feedbackBox.innerHTML = `🎉 <strong>Correct!</strong><br><br>💡 <strong>Translation:</strong> ${q.cnTrans}<br>💡 <strong>Analysis:</strong> ${q.explain}`;
+            } else {
+                selectedBtn.classList.add('wrong');
+                feedbackBox.className = 'feedback-area feedback-error';
+                feedbackBox.innerHTML = `❌ <strong>Wrong!</strong> Correct answer: <strong>${q.answer}</strong><br><br>💡 <strong>Translation:</strong> ${q.cnTrans}<br>💡 <strong>Analysis:</strong> ${q.explain}`;
+                
+                wrongList.push(q);
+
+                allButtons.forEach(btn => {
+                    if (btn.innerText === q.answer) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            enText.innerHTML = `${q.enBefore}<span class="blank-space" style="color:var(--success-green); border-bottom-color:var(--success-green);">${q.answer}</span>${q.enAfter}`;
+            nextActionBtn.style.display = 'block';
+        }
+
+        function startReviewMode() {
+            quizZone.style.display = 'none';
+            reviewZone.style.display = 'block';
+            modeTitle.innerText = 'Review Mode';
+            
+            if (wrongList.length === 0) {
+                document.getElementById('top-bar').style.display = 'none';
+                reviewZone.innerHTML = `
+                    <div class="quiz-card" style="text-align:center; padding:40px 24px; margin-top: 40px;">
+                        <div style="font-size:44px; margin-bottom:16px;">🏆</div>
+                        <div style="font-size:22px; font-weight:bold; color:var(--success-green); margin-bottom:12px;">Perfect!</div>
+                        <div style="font-size:15px; color:var(--text-sub); line-height:1.6; text-align: left;">You got all answers correct! You have fully mastered these 10 high-frequency TOEIC vocabulary words. Keep going!</div>
+                    </div>
+                `;
+                nextActionBtn.innerText = 'Restart Test ↺';
+                nextActionBtn.style.display = 'block';
+                return;
+            }
+
+            loadFlashcard();
+        }
+
+        function loadFlashcard() {
+            cardToggle.classList.remove('flipped'); 
+            const rq = wrongList[reviewIndex];
+            
+            cardEng.innerText = rq.answer;
+            cardCh.innerText = rq.cnTrans;
+            cardExp.innerHTML = `<strong>商務解析：</strong><br>${rq.explain}`;
+            
+            reviewCount.innerText = `強化落後單字 (Incorrect Words)：第 ${reviewIndex + 1} / ${wrongList.length} 個`;
+            
+            quizIndexDisplay.innerText = `${reviewIndex + 1}/${wrongList.length}`;
+            progressFill.style.width = `${((reviewIndex + 1) / wrongList.length) * 100}%`;
+
+            nextActionBtn.innerText = (reviewIndex === wrongList.length - 1) ? 'Finish ➔' : 'Next Word ➔';
+            nextActionBtn.style.display = 'block';
+        }
+
+        cardToggle.addEventListener('click', () => {
+            cardToggle.classList.toggle('flipped');
+        });
+
+        nextActionBtn.addEventListener('click', () => {
+            if (nextActionBtn.innerText === 'Restart Test ↺' || nextActionBtn.innerText === 'Finish ➔') {
+                window.location.reload();
+                return;
+            }
+
+            if (reviewZone.style.display === 'block') {
+                reviewIndex++;
+                if (reviewIndex < wrongList.length) {
+                    loadFlashcard();
+                }
+            } else {
+                currentIndex++;
+                if (currentIndex < db.length) {
+                    loadQuestion();
+                } else {
+                    startReviewMode();
+                }
+            }
+        });
+
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
